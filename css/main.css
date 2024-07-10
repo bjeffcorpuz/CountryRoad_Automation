@@ -1,0 +1,325 @@
+* { -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; box-sizing: border-box; }
+
+body {
+    font-family: "Ubuntu", Helvetica, sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.max-1200{
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.logo{
+    max-width: 250px;
+    margin: 30px auto 40px !important;
+}
+
+
+.nopad{
+    padding: 0 !important;
+}
+
+.header{
+    background: #292f36;
+    color: #ffffff;
+    width: 100%;
+    padding: 10px 15px;
+    font-size: 16px;
+    position: relative;
+    text-align: left;
+}
+
+
+.cbContainer{
+    background-color: #DFDDE3;
+    border:1px solid #292f36;
+    min-height: 100px;
+    position: relative;
+}
+
+
+.bg1{
+    background-color: #313d5a !important;
+}
+
+.bg2{
+    background-color: #183642;
+}
+
+.floatingIcon{
+    display: block;
+    padding: 10px;
+}
+
+
+.buildIcon{
+    font-size: 18px;
+    border: 0;
+    color: #183642;
+    cursor: pointer;
+}
+
+.pad1{
+    padding: 0 3px !important;
+}
+
+
+.prevContainer{
+    border: 1px solid #ccc;
+}
+
+.sliding-div {
+    position: absolute;
+    top: 0;
+    left: -400px; /* Adjust based on the width of the div */
+    width: 400px;
+    min-height: 100px;
+    background-color: #000;
+    color: white;
+    transition: left 0.5s ease;
+}
+  
+.toggle-button {
+    margin: 20px;
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.contentBuilder{
+padding:10px 5px 0px 5px;
+}
+
+.block{
+    width: 100%;
+    min-height: 50px;
+    margin-bottom: 5px;
+    background-color: #052F5F;
+    border-radius: 5px;
+    padding: 5px;
+    position: relative;
+    cursor: pointer;
+}
+
+.controls{
+    font-size: 0;
+    text-align: right;
+    padding: 0;
+}
+
+.controls i{
+    margin-left: 5px;
+    margin-bottom: 3px;
+    color: #F1A208;
+    font-weight: bold;
+}
+
+.block:last-child, .table:last-child, .twocolumn:last-child, .fullcolumn:last-child, .customBlock:last-child, #contentSelection:last-child{
+    margin-bottom: 0px;
+}
+
+.redIcon{
+    color: #C12143 !important;
+}
+
+.table, .customBlock{
+    width: 100%;
+    min-height: 40px;
+    border-radius: 5px;
+    margin: 0 0 5px 0;
+    background-color: #fff;
+    position: relative;
+    padding: 5px;
+}
+
+.fullcolumn{
+    width: 100%;
+    padding: 10px;
+    background-color: #403D58;
+    display: block;
+    border-radius: 5px;
+    margin-bottom: 5px;
+}
+
+.halfcolumn{
+    width: 50%;
+    padding: 10px;
+    background-color: #403D58;
+    border-radius: 5px;
+}
+
+.twocolumn{
+    width: 100%;
+    font-size: 0px;
+    display: flex;
+    margin-bottom: 5px;
+}
+
+#contentSelection{
+    width: 100%;
+    max-width: 400px;
+    border: 1px solid #000;
+    background: #EEF0EB;
+    padding: 0;
+    margin-bottom: 5px;
+}
+
+
+#contentSelection i {
+    font-size: 40px !important;
+    color: #001011 !important;
+    cursor: pointer;
+}
+
+#contentSelection i:hover ~ .desc, #contentSelection i:hover{
+    text-shadow: -0px 0px 5px #ffffff;
+}
+
+#contentSelection .row{
+    padding: 0 !important;
+}
+
+#contentSelection .row .col-4{
+    padding: 10px !important;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    cursor: pointer;
+    
+}
+
+#contentSelection .row .selected, #contentSelection .row .col-4:hover{
+    background-color: #292738;
+}
+
+#contentSelection .row .selected i , #contentSelection .row .selected .desc{
+    color: #EEF0EB !important;
+}
+
+.desc{
+    color: #001011;
+    margin-top: 5px;
+}
+
+#selectionCtas{
+    padding: 10px !important;
+    text-align: right;
+}
+
+#contentContainer{
+    width: 100%;
+    max-width: 400px;
+    position: absolute;
+    background-color: #E6FDFF;
+    top: 0;
+    right: 0;
+}
+
+.openSelection{
+    color: #ffffff;
+    font-size: 10px;
+    vertical-align: middle;
+    flex-direction: column;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.openSelection i{
+    font-size: 30px;
+    color: #ffffff;
+    background-color: transparent;
+}
+
+.openSelection i.fa-solid{
+    display: block !important;
+}
+
+
+
+.form{
+    display: block;
+    height: auto; 
+    background-color: #292f36;
+    border: 1px solid #fff; 
+    padding: 10px;
+    border-radius: 5px;
+    
+}
+
+.nameSlice{
+    color: #ffffff;
+}
+
+.btnClose{
+    color: red;
+    cursor: pointer;
+}
+
+input{
+    box-shadow: none !important;
+    border: 0 !important;
+}
+
+.form .input-group-text{
+    font-weight: 500;
+    background-color: #EFE6DD;
+    width: 94px;
+}
+
+.form .gold{
+    background-color: #FFD700;
+}
+
+.form .silver{
+    background-color: #C0C0C0;
+}
+
+.form .bronze{
+    background-color: #CD7F32;
+}
+
+.form .member{
+    background-color: #000;
+    color: #fff;
+}
+
+.form .form-check-label{
+    margin-left: 5px !important;
+}
+
+.form .form-check-label{
+    color: #fff;
+    cursor: pointer;
+}
+
+.form .alert{
+    margin-bottom: 8px;
+    padding: 8px;
+}
+
+.form .liveText{
+    font-size: 12px !important;
+}
+
+.customBlock{
+    font-size: 10px;
+    padding: 10px;
+    vertical-align: middle;
+    flex-direction: column;
+    display: flex;
+    align-items: center;
+    color: #fff;
+    justify-content: center;
+}
+
+
+.customBlock i{
+    font-size: 30px;
+    display: block;
+    margin-bottom: 5px;
+}
+
+.fForm .codeC, .customBlock{
+    background-color: #1A535C !important;
+}
