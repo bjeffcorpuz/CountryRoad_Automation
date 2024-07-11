@@ -323,13 +323,13 @@ $(document).on('click','.addData',function(){
 
     if($(this).hasClass("fa-font")){
         let templateTrTd = `
-<tr>
-    <td style="font-size: 16px; font-family:'Roboto',Arial, sans-serif; letter-spacing:0px; text-align:left;  line-height: 28px; color: #54555c; display:block; font-weight:400; margin:0 auto; padding: 0px 50px" valign="top" align="left" class="left-copy-pad-8 body-copy">
+    <tr>
+        <td style="font-size: 16px; font-family:'Roboto',Arial, sans-serif; letter-spacing:0px; text-align:left;  line-height: 28px; color: #54555c; display:block; font-weight:400; margin:0 auto; padding: 0px 50px" valign="top" align="left" class="left-copy-pad-8 body-copy">
 
-        Only edit the content and necessary attribute in td    
+            Only edit the content and necessary attribute in td    
 
-    </td>
-</tr>        
+        </td>
+    </tr>        
         `
 
         formHTML =`
@@ -538,9 +538,10 @@ $(document).on("click",'.save',function(){
 //preview
 $(document).on("click","#previewBuild",function(){
     buildBlocks();
+    emailTemplate();
 });
 
-//.contentBuilder > .block(possible no children)(remove .controls) > .table or .customblock (remove .controls)(.table possible no content)
+
 function buildBlocks(){
     globalBlock = []; //resetting;
     let block = $(".contentBuilder > .block");
@@ -643,3 +644,210 @@ function buildBlocks(){
 
     console.log(JSON.stringify(globalBlock));
 }
+
+function emailTemplate(){
+    
+    let block = '';
+ 
+
+    
+    for (let index = 0; index < globalBlock.length; index++) {
+
+        let content = '';
+
+        //block level
+        for (let tblIndex = 0; tblIndex < globalBlock[index].data.length; tblIndex++) {
+            const element = globalBlock[index].data[tblIndex];
+            
+
+            //console.log(tableType);
+            content = generateTable(element);
+            
+        }
+
+        block += `
+<!-- Block ${index + 1} -->
+${content}
+<!-- end of Block ${index + 1} -->        
+        `
+        
+    }
+
+    //appending to the div
+    $("#previewContainer").empty().append(block);
+}
+
+function generateTable(data){
+    let tableType = data.tableType;
+    let column = data.column;
+    let dataTr = data.data;
+    let contentHtml = '';
+    let htmlTable = '';
+
+
+    for (let index = 0; index < dataTr.length; index++) {
+        contentHtml += generateRows(dataTr[index], column);
+    }
+
+    if (tableType != "customTable"){
+        htmlTable = 
+`<table align="center" border="0" cellpadding="0" cellspacing="0" class="full-width" width="600">
+\t<tbody>${contentHtml}\t</tbody>
+</table>`
+    }else{
+        htmlTable = contentHtml
+    }
+
+    return htmlTable;
+
+
+}
+
+function generateRows(trDatas, column){
+    let columnType = trDatas.columnType;
+    let trColspan = (column == 2) ? ' colspan="2" ' : '';
+    let trData = trDatas.data;
+    let html = '';
+    //templating
+    //check if fullcolumn, twocolumn or codeBlock
+    if (columnType == "fullcolumn"){
+        trData = JSON.parse(trData);
+        //check if live font
+        if(trData.contentType == "fa-font"){
+            html = `\t${trData.html}\n`;
+        }else{
+
+
+        let linkStart = (trData.contentType == "fa-link") ? `<a href="{{ ${trData.slice} }}?" {{clicktracking}}style="text-decoration: none;" target="_blank">` : '';
+        let linkEnd = (trData.contentType == "fa-link") ?  '</a>' : '';
+        
+        
+html = `
+    <tr>
+        <td align="center" valign="top" background="${trData.imgSrc}" style="background: url('${trData.imgSrc}') top left / cover no-repeat; background-size: cover; height: inherit; width: 600px;"${trColspan}>
+            ${linkStart}
+                <!--[if !mso 9]><!-->
+                <div class="mobile-show" width="100%" style="mso-hide: all; display:none; overflow: hidden; max-height: 0px; line-height:0;">
+                <img width="100%" src="${trData.imgSrc}" style="mso-hide:all;" alt="${trData.imgAlt}" border="0">
+                </div>
+                <!--<![endif]-->
+                <img class="mobile-hide" width="600" height="auto" src="${trData.imgSrc}" style="display:block; max-width: 600px; width:100%;" alt="${trData.imgAlt}" border="0">
+            ${linkEnd}
+        </td>
+    </tr>
+`
+}
+    }
+
+    if (columnType == "twocolumn"){
+        //converting array(string) to obj
+        trData = [JSON.parse(trData[0]),JSON.parse(trData[1])];
+
+        let linkStartL = (trData[0].contentType == "fa-link") ? `<a href="{{ ${trData[0].slice} }}?" {{clicktracking}}style="text-decoration: none;" target="_blank">` : '';
+        let linkEndL = (trData[0].contentType == "fa-link") ?  '</a>' : '';
+
+        let linkStartR = (trData[1].contentType == "fa-link") ? `<a href="{{ ${trData[1].slice} }}?" {{clicktracking}}style="text-decoration: none;" target="_blank">` : '';
+        let linkEndR = (trData[1].contentType == "fa-link") ?  '</a>' : '';
+
+        let leftContent = '';
+        let rightContent = '';
+
+        if(trData[0].contentType != 'fa-font'){
+            leftContent = `
+                    <tr>
+                    <td align="center" style="padding: 0px 0px 0px 0px">
+                        ${linkStartL}
+                            <!--[if !mso 9]><!-->
+                            <div class="mobile-show" width="100%" style="mso-hide: all; display:none; overflow: hidden; max-height: 0px; line-height:0;">
+                            <img width="100%" src="${trData[0].imgSrc}" style="mso-hide:all;" alt="${trData[0].imgAlt}" border="0">
+                            </div>
+                            <!--<![endif]--> 
+                            <img class="mobile-hide" width="300" height="auto" src="${trData[0].imgSrc}" style="display:block; max-width: 300px; width:100%;" alt="${trData[0].imgAlt}" border="0">                                
+                        ${linkEndL}
+                    </td>
+                    </tr>            
+            `
+        }else{
+
+            leftContent = trData[0].html
+        }
+
+        if(trData[1].contentType != 'fa-font'){
+            rightContent = `
+                    <tr>
+                    <td align="center" style="padding: 0px 0px 0px 0px">
+                        ${linkStartR}
+                            <!--[if !mso 9]><!-->
+                            <div class="mobile-show" width="100%" style="mso-hide: all; display:none; overflow: hidden; max-height: 0px; line-height:0;">
+                            <img width="100%" src="${trData[1].imgSrc}" style="mso-hide:all;" alt="${trData[1].imgAlt}" border="0">
+                            </div>
+                            <!--<![endif]--> 
+                            <img class="mobile-hide" width="300" height="auto" src="${trData[1].imgSrc}" style="display:block; max-width: 300px; width:100%;" alt="${trData[0].imgAlt}" border="0">                                
+                        ${linkEndR}
+                    </td>
+                    </tr>           
+            `
+        }else{
+            rightContent = trData[1].html
+        }        
+
+        html = `
+    <tr>
+        <th class="half-width" width="300" valign="top" background="${trData[0].imgSrc}" style="background: url('${trData[0].imgSrc}') top left / cover no-repeat; background-size: cover; height: inherit; width: 300px;">
+            <table class="full-width" width="100%" border="0" cellpadding="0" cellspacing="0">
+                <tbody>
+                    ${leftContent}
+                </tbody>
+            </table>
+        </th>
+
+        <th class="half-width" width="300" valign="top" background="${trData[1].imgSrc}" style="background: url('${trData[1].imgSrc}') top left / cover no-repeat; background-size: cover; height: inherit; width: 300px;">
+            <table class="full-width" width="100%" border="0" cellpadding="0" cellspacing="0">
+                <tbody>
+                    ${rightContent}
+                </tbody>
+            </table>
+        </th>
+    </tr>
+`
+
+    }
+
+    if (columnType == "codeBlock" || columnType == "fa-font"){
+
+        html = trData
+    }
+
+
+    return html;
+
+
+}
+
+//copy html
+$(document).on('click',"#copybuild",function(){
+    // Get the HTML content of the source element
+    var htmlContent = $('#previewContainer').html();
+    // Create a temporary textarea element to hold the HTML content
+    var tempTextarea = $('<textarea>').text($.trim(htmlContent)).css({
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        opacity: 0
+    });
+
+    // Append the textarea to the body
+    $('body').append(tempTextarea);
+
+    // Select the text in the textarea
+    tempTextarea.select();
+
+    // Copy the selected text to the clipboard
+    document.execCommand('copy');
+
+    // Remove the temporary textarea
+    tempTextarea.remove();
+
+    // Optionally, provide feedback to the user
+    alert('Email Data has been copied to the clipboard!');
+});
