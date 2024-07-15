@@ -209,7 +209,7 @@ padding:10px 5px 0px 5px;
 #contentContainer{
     width: 100%;
     max-width: 400px;
-    position: absolute;
+    position: fixed;
     background-color: #E6FDFF;
     top: 0;
     right: 0;
@@ -256,9 +256,10 @@ padding:10px 5px 0px 5px;
     cursor: pointer;
 }
 
-input{
+.form input{
     box-shadow: none !important;
     border: 0 !important;
+    font-size: 12px !important;
 }
 
 .form .input-group-text{
@@ -322,4 +323,49 @@ input{
 
 .fForm .codeC, .customBlock{
     background-color: #1A535C !important;
+}
+
+.addData[data]{
+    color:#8FC93A !important;
+}
+
+#previewContainer .spinner-border{
+    margin: 10px;
+    width: 5rem;
+    height: 5rem;
+    
+}
+
+.fa-copy, .fa-clipboard, .fa-scroll{
+    color: #ffffff;
+    margin-right: 5px;
+}
+
+#objString{
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 5px 10px;
+    text-align: left;
+    height: 150px;
+    font-size: 10px;
+}
+
+#copyDataString, #sdata{
+    color:#ffffff
+}
+
+.liquidContainer{
+    background-color: #EFF1F3;
+    color: #000;
+}
+
+#LiquidCode{
+    width: 100%;
+    height: auto;
+    font-size: 10px;
+    border-radius: 5px;
+}
+
+.offcanvas.offcanvas-top{
+    height: auto !important;
 }

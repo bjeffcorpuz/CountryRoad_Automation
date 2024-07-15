@@ -4,6 +4,13 @@ let isVisible = false; //state of div data
 let isVisibleContent = false; //state of div selection
 let globalHtml = {} //for live text and custom code
 let globalBlock = [] //for blocks
+let linksChecker = []
+let tierLinks = {};
+let auLinks = "";
+let nzLinks = "";
+let outsideLinks = "";
+let checkLinks = [];
+let errorMessages = [];
 
 function generateCode() {
     // Generate a random 5-digits code
@@ -22,9 +29,9 @@ function generateCode() {
   
 
 
-$(".contentBuilder").sortable({
-    revert: true
-  });
+// $(".contentBuilder").sortable({
+//     revert: true
+//   });
 
 
 // Adding Block
@@ -204,8 +211,6 @@ $(document).on('click','.removeElement',function(){
         $('.fForm[data-for="' + sibling + '"').remove(); //siblings
     }
 
-    
-
     //removing itself from the container
     parentId.remove();
 
@@ -251,6 +256,11 @@ $(document).on('click','.addData',function(){
     }
 
     if($(this).hasClass("fa-link")){
+        //check if deeplinks inputs need disabling
+        let disable = '';
+        if(data.actualLink || data.noDl){
+            disable = ' disabled'
+        }
         formHTML =`
         <div class="col-6 nopad fForm" data-for="${dataId}" data-content="fa-link">
             <div class="form">
@@ -270,7 +280,7 @@ $(document).on('click','.addData',function(){
                     </div>
                     <div class="input-group mb-2">
                         <span class="input-group-text">Link*</span>
-                        <input type="text" class="form-control link" placeholder="{{Base URL}} + Link" value="${(data) ? data.link : ''}">
+                        <input type="text" class="form-control link" placeholder="{{Base URL}} + Link, type '{{BaseURL}}' if only BaseURL" value="${(data) ? data.link : ''}">
         
                     </div>
                     <div class="input-group mb-2">
@@ -284,20 +294,20 @@ $(document).on('click','.addData',function(){
         
                     </div>
                     <div class="input-group mb-2">
-                        <span class="input-group-text gold">Deeplink*</span>
-                        <input type="text" class="form-control goldDl" placeholder="Gold Deeplink" value="${(data) ? data.goldTier : ''}">
+                        <span class="input-group-text gold">Deeplink</span>
+                        <input type="text" class="form-control goldDl" placeholder="Gold Deeplink" value="${(data) ? data.goldTier : ''}"${disable}>
                     </div>
                     <div class="input-group mb-2">
-                        <span class="input-group-text silver">Deeplink*</span>
-                        <input type="text" class="form-control silverDl" placeholder="Silver Deeplink" value="${(data) ? data.silverTier : ''}">
+                        <span class="input-group-text silver">Deeplink</span>
+                        <input type="text" class="form-control silverDl" placeholder="Silver Deeplink" value="${(data) ? data.silverTier : ''}"${disable}>
                     </div>
                     <div class="input-group mb-2">
-                        <span class="input-group-text bronze">Deeplink*</span>
-                        <input type="text" class="form-control bronzeDl" placeholder="Bronze Deeplink" value="${(data) ? data.bronzeTier : ''}">
+                        <span class="input-group-text bronze">Deeplink</span>
+                        <input type="text" class="form-control bronzeDl" placeholder="Bronze Deeplink" value="${(data) ? data.bronzeTier : ''}"${disable}>
                     </div>
                     <div class="input-group mb-2">
-                        <span class="input-group-text member">Deeplink*</span>
-                        <input type="text" class="form-control memberDl" placeholder="Member Deeplink" value="${(data) ? data.memberTier : ''}">
+                        <span class="input-group-text member">Deeplink</span>
+                        <input type="text" class="form-control memberDl" placeholder="Member Deeplink" value="${(data) ? data.memberTier : ''}"${disable}>
                     </div>
                     <div class="text-start mb-2">
                         <input class="form-check-input actualLink" type="checkbox" value="" id="${dataId}" ${((data) ? (data.actualLink === true ? "checked" : "") : '')}>
@@ -473,14 +483,14 @@ $(document).on("click",'.save',function(){
             data.imgSrc = $.trim(formParent.find(".imgSrc").val());
             data.imgAlt = $.trim(formParent.find(".imgAlt").val());
             data.goldTier = $.trim(formParent.find(".goldDl").val());
-            data.silveTier = $.trim(formParent.find(".silverDl").val());
+            data.silverTier = $.trim(formParent.find(".silverDl").val());
             data.bronzeTier = $.trim(formParent.find(".bronzeDl").val());
             data.memberTier = $.trim(formParent.find(".memberDl").val());
             data.actualLink = formParent.find(".actualLink").is(':checked');
             data.noDl = formParent.find(".noDl").is(':checked');
             data.contentType = contentType;
+            data.id = parentID;
             save = 1;
-
         }
     }
 
@@ -490,6 +500,7 @@ $(document).on("click",'.save',function(){
             data.imgSrc = $.trim(formParent.find(".imgSrc").val());
             data.imgAlt = $.trim(formParent.find(".imgAlt").val());
             data.contentType = contentType;
+            data.id = parentID;
             save = 1;
         }
     }  
@@ -499,6 +510,7 @@ $(document).on("click",'.save',function(){
         if($.trim(formParent.find(".liveText").val())){
             data.html = $.trim(formParent.find(".liveText").val());
             data.contentType = contentType;
+            data.id = parentID;
             save = 1;
         }
     }  
@@ -508,6 +520,7 @@ $(document).on("click",'.save',function(){
         if($.trim(formParent.find(".liveText").val())){
             globalHtml[parentID] = $.trim(formParent.find(".liveText").val());
             data.contentType = contentType;
+            data.id = parentID;
             save = 1;
         }
         
@@ -537,8 +550,15 @@ $(document).on("click",'.save',function(){
 
 //preview
 $(document).on("click","#previewBuild",function(){
+    //removing message alerts
+    $("#errorPrep .alert").remove();
+
     buildBlocks();
     emailTemplate();
+    printDataString();
+    setLiquid();
+    missingData();
+    printLiquidscript();
 });
 
 
@@ -617,6 +637,7 @@ function buildBlocks(){
                 if(data){
                     content.columnType = "codeBlock";
                     content.data = globalHtml[dataId];
+                    content.id = dataId;
                     perRow.push(content);
                 }
 
@@ -642,14 +663,12 @@ function buildBlocks(){
         
     });
 
-    console.log(JSON.stringify(globalBlock));
+    //console.log(JSON.stringify(globalBlock));
 }
 
 function emailTemplate(){
     
     let block = '';
- 
-
     
     for (let index = 0; index < globalBlock.length; index++) {
 
@@ -658,11 +677,9 @@ function emailTemplate(){
         //block level
         for (let tblIndex = 0; tblIndex < globalBlock[index].data.length; tblIndex++) {
             const element = globalBlock[index].data[tblIndex];
-            
 
-            //console.log(tableType);
-            content = generateTable(element);
-            
+            content += generateTable(element);
+
         }
 
         block += `
@@ -673,8 +690,16 @@ ${content}
         
     }
 
-    //appending to the div
-    $("#previewContainer").empty().append(block);
+    //adding spinner tp the preview content
+    let spinnerHtml = `<div class="spinner-border text-dark" role="status"><span class="visually-hidden">Loading...</span></div>`
+    $("#previewContainer").empty().append(spinnerHtml);
+    $("#btnContainer").css("display","block");
+
+    //appending to the div after 5 secs
+    setTimeout(function(){
+        $("#previewContainer").empty().append(block);
+    }, 5000);
+    
 }
 
 function generateTable(data){
@@ -689,13 +714,16 @@ function generateTable(data){
         contentHtml += generateRows(dataTr[index], column);
     }
 
+    //console.log(tableType);
+    // console.log(contentHtml);
+
     if (tableType != "customTable"){
         htmlTable = 
 `<table align="center" border="0" cellpadding="0" cellspacing="0" class="full-width" width="600">
 \t<tbody>${contentHtml}\t</tbody>
 </table>`
     }else{
-        htmlTable = contentHtml
+        htmlTable = `${contentHtml}\n`
     }
 
     return htmlTable;
@@ -718,7 +746,7 @@ function generateRows(trDatas, column){
         }else{
 
 
-        let linkStart = (trData.contentType == "fa-link") ? `<a href="{{ ${trData.slice} }}?" {{clicktracking}}style="text-decoration: none;" target="_blank">` : '';
+        let linkStart = (trData.contentType == "fa-link") ? `<a href="{{ Link${trData.slice} }}?" {{clicktracking}}style="text-decoration: none;" target="_blank">` : '';
         let linkEnd = (trData.contentType == "fa-link") ?  '</a>' : '';
         
         
@@ -743,10 +771,10 @@ html = `
         //converting array(string) to obj
         trData = [JSON.parse(trData[0]),JSON.parse(trData[1])];
 
-        let linkStartL = (trData[0].contentType == "fa-link") ? `<a href="{{ ${trData[0].slice} }}?" {{clicktracking}}style="text-decoration: none;" target="_blank">` : '';
+        let linkStartL = (trData[0].contentType == "fa-link") ? `<a href="{{ Link${trData[0].slice} }}?" {{clicktracking}}style="text-decoration: none;" target="_blank">` : '';
         let linkEndL = (trData[0].contentType == "fa-link") ?  '</a>' : '';
 
-        let linkStartR = (trData[1].contentType == "fa-link") ? `<a href="{{ ${trData[1].slice} }}?" {{clicktracking}}style="text-decoration: none;" target="_blank">` : '';
+        let linkStartR = (trData[1].contentType == "fa-link") ? `<a href="{{ Link${trData[1].slice} }}?" {{clicktracking}}style="text-decoration: none;" target="_blank">` : '';
         let linkEndR = (trData[1].contentType == "fa-link") ?  '</a>' : '';
 
         let leftContent = '';
@@ -782,7 +810,7 @@ html = `
                             <img width="100%" src="${trData[1].imgSrc}" style="mso-hide:all;" alt="${trData[1].imgAlt}" border="0">
                             </div>
                             <!--<![endif]--> 
-                            <img class="mobile-hide" width="300" height="auto" src="${trData[1].imgSrc}" style="display:block; max-width: 300px; width:100%;" alt="${trData[0].imgAlt}" border="0">                                
+                            <img class="mobile-hide" width="300" height="auto" src="${trData[1].imgSrc}" style="display:block; max-width: 300px; width:100%;" alt="${trData[1].imgAlt}" border="0">                                
                         ${linkEndR}
                     </td>
                     </tr>           
@@ -818,10 +846,228 @@ html = `
         html = trData
     }
 
-
     return html;
 
 
+}
+
+function printDataString(){
+    var dataString = JSON.stringify(globalBlock);
+    $("#objString").val(dataString);
+}
+
+function setLiquid(){
+    
+    let block = globalBlock;
+    errorMessages = [] //resetting error messages
+    auLinks = ""; // resetting values
+    nzLinks = ""; // resetting values
+    outsideLinks = ""; // resetting values
+    linksChecker = []; //resetting value
+    tierLinks = {"goldTier":"","silverTier":"","bronzeTier":"","memberTier":""};
+
+
+    for (let index = 0; index < block.length; index++) {
+        const blocks = block[index].data;
+  
+        for (let x = 0; x < blocks.length; x++) {
+            const tableTypes = blocks[x];
+            
+            for (let y = 0; y < tableTypes.data.length; y++) {
+                const columnType = tableTypes.data[y];
+
+                //check if one or two column
+                if (columnType.columnType == "twocolumn"){
+                    
+                    for (let a = 0; a < columnType.data.length; a++) {
+                         let data = JSON.parse(columnType.data[a])
+
+                        if(data.contentType == "fa-link"){
+                            setVariables(data);
+                        }  
+                    }
+
+                }else{
+                    //one column
+                    let data = JSON.parse(columnType.data)
+                    //only save if contentType is fa-link
+                    if(data.contentType == "fa-link"){
+                        setVariables(data);
+                    }                    
+                }
+                
+            }
+            
+        }
+        
+    }
+
+
+}
+
+function setVariables(d){
+    let data = d;   
+
+    //check if slice, link, imgSrc and any of the deeplinks have values
+
+    if(data.slice && data.link && data.imgSrc){
+        if(!linksCheck(data.slice)){
+            //if theres no duplciate,,save create variable
+
+            //set data.link if its Base URL
+            let baseURL = data.link.toLowerCase();
+
+            //check actualLink and deepLink first
+            if (data.actualLink || data.noDl){
+
+                if(data.actualLink){
+                    outsideLinks += `\t{% assign Link${data.slice} = ${data.link} %}\n`  
+                }else{
+                    if(baseURL == "{{baseurl}}"){
+                        outsideLinks += `\t{% assign Link${data.slice} = BaseURL %}\n`
+                    }else{
+                        outsideLinks += `\t{% assign Link${data.slice} = BaseURL | append: '${data.link}' %}\n`
+                    }
+                }
+
+            }else{
+                //both unchecked, check if deeplinks have values
+
+                //all tier have values
+                
+                if (data.goldTier && data.silverTier && data.bronzeTier && data.memberTier){
+                    //AU
+                    tierLinks.goldTier += `\t\t{% assign Link${data.slice} = ${data.goldTier} %}\n`;
+                    tierLinks.silverTier += `\t\t{% assign Link${data.slice} = ${data.silverTier} %}\n`;
+                    tierLinks.bronzeTier += `\t\t{% assign Link${data.slice} = ${data.bronzeTier} %}\n`;
+                    tierLinks.memberTier += `\t\t{% assign Link${data.slice} = ${data.memberTier} %}\n`;
+
+                }else{
+                    //if any of the tier have value
+                    if (data.goldTier || data.silverTier || data.bronzeTier || data.memberTier) {
+                        //set variable here
+                        let tierArray = [data.goldTier, data.silverTier, data.bronzeTier, data.memberTier];
+                        let getLink = '';
+                        for (let index = 0; index < tierArray.length; index++) {
+                            const element = tierArray[index];
+                            //if have value, save
+                            if(tierArray[index]){
+                                getLink = `\t{% assign Link${data.slice} = ${tierArray[index]} %}\n`;
+                            }
+                            
+                        }
+
+                        auLinks += getLink;
+
+                    }else{
+                        //send error message
+                        let message = `<b>[${data.id}]</b> <i>deeplinks</i> must have atleast 1 value`;
+                        errorMessages.push(message);
+                    }
+                }
+                console.log(baseURL)
+                if(baseURL == "{{baseurl}}"){
+                    nzLinks += `\t{% assign Link${data.slice} = BaseURL %}\n`;
+                }else{
+                    nzLinks += `\t{% assign Link${data.slice} = BaseURL | append: '${data.link}' %}\n`;
+                }
+
+            }
+
+            linksChecker.push(data.slice)
+
+        }
+
+    }else{
+        //push to error message
+        let message = `<b>[${data.id}]</b> have missing datas, please check if <i>Slice</i>, <i>Link</i>, or <i>ImgSrc</i> have value`;
+        errorMessages.push(message);
+    }
+
+    //console.log(linksChecker)
+    
+}
+
+function missingData(){
+    //check if we have error messages
+
+    if(errorMessages.length > 0){
+        
+        for (let index = 0; index < errorMessages.length; index++) {
+            const msg = errorMessages[index];
+            let htmlMsg = `<div class="alert alert-danger" role="alert">${msg}</div>`;
+            //prepending the error messagees
+            $("#errorPrep").prepend(htmlMsg);
+        }
+
+    }
+}
+
+function printLiquidscript(){
+
+    let tier = '';
+    //check if needed to add the tier  conditions
+
+    if(tierLinks.goldTier.length > 0 && tierLinks.silverTier.length > 0 && tierLinks.bronzeTier.length > 0 && tierLinks.memberTier.length > 0){
+        tier = `
+\t{% comment %} Tiers Links {% endcomment %} 
+
+\t{% case tier %}
+\t{% when 'Gold' %}
+${tierLinks.goldTier}
+\t{% when 'Silver' %}
+${tierLinks.silverTier}
+\t{% when 'Bronze' %}
+${tierLinks.bronzeTier}
+\t{% else %}
+${tierLinks.memberTier}
+\t{% endcase %}   
+
+        `
+    }
+
+    let deeplinks = `
+{% comment %} Deep link code {% endcomment %}
+<!--
+{% assign clicktracking = 'clicktracking=off ' %}
+
+{% if \${country} == 'AU' %}  
+${tier}
+${auLinks}
+{% else %}
+
+{% comment %} Set other countries links {% endcomment %}
+${nzLinks}
+{% endif %}
+
+{% comment %} No Deep Links {% endcomment %}
+${outsideLinks}
+--> 
+    `    
+    
+    $("#LiquidCode").text(deeplinks);
+    adjustTextareaHeight( $("#LiquidCode")[0]);
+}
+
+function linksCheck(slice){
+
+    let sliceID = slice
+    let duplicates = false;
+    let htmlWarning = '';
+
+    
+    for (let index = 0; index < linksChecker.length; index++) {
+
+        if (linksChecker[index] == sliceID) {
+            //theres a link duplicate
+            duplicates = true;
+            htmlWarning += `<div class="alert alert-warning" role="alert">Slice: ${linksChecker[index]} have duplicates, first link will be used</div>`
+        }
+
+    }
+
+    $("#errorPrep").prepend(htmlWarning);
+    return duplicates //return to check if theres duplicate
 }
 
 //copy html
@@ -849,5 +1095,108 @@ $(document).on('click',"#copybuild",function(){
     tempTextarea.remove();
 
     // Optionally, provide feedback to the user
-    alert('Email Data has been copied to the clipboard!');
+    alert('Email Html has been copied to the clipboard!');
 });
+
+//copy data string
+$(document).on('click', "#copyDataString, #copyLiquidString", function() {
+    // Get the string content of the source element
+    let id = $(this).attr("id");
+    let string = '';
+    if(id == "copyDataString"){
+        string = $("#objString").val().trim();
+    }else{
+        string = $("#LiquidCode").val().trim();
+    }
+     
+    if (!string) {
+        return;
+    }
+
+    // Use the Clipboard API to write the text to the clipboard
+    navigator.clipboard.writeText(string).then(function() {
+        alert('Data String has been copied to the clipboard!');
+    }).catch(function(err) {
+        console.error('Could not copy text: ', err);
+        alert('Cannot copy the data, please contact the dev');
+    });
+});
+
+// actual link and no deep link click events
+$(document).on('click','.actualLink, .noDl',function(){
+    let parent = $(this).closest(".fForm");
+    let thisT = $(this).is(":checked");
+    let other = '';
+    let gold = parent.find(".goldDl");
+    let silver = parent.find(".silverDl");
+    let bronze = parent.find(".bronzeDl");
+    let member = parent.find(".memberDl");
+
+    if($(this).hasClass("actualLink")){
+        other = $(this).closest(".fForm").find(".noDl").is(":checked");
+    }else{
+        other = $(this).closest(".fForm").find(".actualLink").is(":checked");
+    }
+
+
+    if(thisT || other){
+  
+        //means disable values, if there's a value, save it
+        if($.trim(gold.val())){
+            gold.attr("data-value",$.trim(gold.val())).val("");
+        }
+
+        if($.trim(silver.val())){
+            silver.attr("data-value",$.trim(silver.val())).val("");
+        }
+
+        if($.trim(bronze.val())){
+            bronze.attr("data-value",$.trim(bronze.val())).val("");
+        }
+
+        if($.trim(member.val())){
+            member.attr("data-value",$.trim(member.val())).val("");
+        }
+
+        gold.attr("disabled","disabled");
+        silver.attr("disabled","disabled");
+        bronze.attr("disabled","disabled");
+        member.attr("disabled","disabled");
+        
+    }else{
+     
+        //enable values
+        if(gold.attr("data-value")){
+            gold.val(gold.attr("data-value")).removeAttr("data-value")
+        }
+
+        if(silver.attr("data-value")){
+            silver.val(silver.attr("data-value")).removeAttr("data-value")
+        }
+
+        if(bronze.attr("data-value")){
+            bronze.val(bronze.attr("data-value")).removeAttr("data-value")
+        }
+
+        if(member.attr("data-value")){
+            member.val(member.attr("data-value")).removeAttr("data-value")
+        }
+
+        gold.removeAttr("disabled");
+        silver.removeAttr("disabled");
+        bronze.removeAttr("disabled");
+        member.removeAttr("disabled");
+    }
+
+});
+
+function adjustTextareaHeight(el) {
+    el.style.height = 'auto';
+    el.style.height = (el.scrollHeight) + 'px';
+}
+
+
+
+// $(document).on('click','.btn-close',function(){
+//     console.log("iim clciked")
+// });
