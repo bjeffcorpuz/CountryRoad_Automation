@@ -38,7 +38,7 @@ function generateCode() {
 $(document).on('click','#addBlock',function(){
     //$(".toggle-button").click()
     //adding block
-    const blockHtml = `<div dataid="${generateCode()}" class="block"><div class="controls"><i class="fa-solid fa-code buildIcon addCustom" title="Custom Code"></i><i class="fa-solid fa-table buildIcon addTable" title="Add Table"></i><i class="fa-solid fa-rectangle-xmark buildIcon redIcon removeParent" title="Remove Block"></i></div></div>`;
+    const blockHtml = `<div dataid="${generateCode()}" class="block"><div class="controls"><i class="fa-solid fa-globe buildIcon linkOnly" title="Link Only"></i><i class="fa-solid fa-code buildIcon addCustom" title="Custom Code"></i><i class="fa-solid fa-table buildIcon addTable" title="Add Table"></i><i class="fa-solid fa-rectangle-xmark buildIcon redIcon removeParent" title="Remove Block"></i></div></div>`;
 
     //appending it to .contentBuilder
     $(".contentBuilder").append(blockHtml);
@@ -58,6 +58,17 @@ $(document).on('click','.addCustom',function(){
     //adding block
     let code = generateCode();
     const customHtml = `<div class="customBlock" data-id="${code}" data-status="inactive"><i class="fa-solid fa-code addData" data-status="inactive"></i>[${code}]</div>`;
+
+    //appending the custom block
+    $(this).parent().parent().append(customHtml);
+});
+
+//adding Outer Custom
+$(document).on('click','.linkOnly',function(){
+
+    //adding block
+    let code = generateCode();
+    const customHtml = `<div class="linkOnlyContainer" data-id="${code}" data-status="inactive"><i class="fa-solid fa-globe addData" data-status="inactive"></i>[${code}]</div>`;
 
     //appending the custom block
     $(this).parent().parent().append(customHtml);
@@ -255,14 +266,37 @@ $(document).on('click','.addData',function(){
             `
     }
 
-    if($(this).hasClass("fa-link")){
+    if($(this).hasClass("fa-link") || $(this).hasClass("fa-globe")){
         //check if deeplinks inputs need disabling
         let disable = '';
         if(data.actualLink || data.noDl){
             disable = ' disabled'
         }
+
+        let imgForm = ''
+        let dataContent = '';
+        let removeBtn = ''
+
+        if($(this).hasClass("fa-link")){
+            imgForm = `
+                    <div class="input-group mb-2">
+                        <span class="input-group-text">Img Src*</span>
+                        <input type="text" class="form-control imgSrc" placeholder="Image Source" value="${(data) ?  data.imgSrc : ''}">
+        
+                    </div>
+                    <div class="input-group mb-2">
+                        <span class="input-group-text">Img Alt</span>
+                        <input type="text" class="form-control imgAlt" placeholder="Image Alt" value="${(data) ? data.imgAlt : ''}">
+        
+                    </div>`
+            dataContent = "fa-link"        
+        }else{
+            dataContent = "fa-globe"
+            removeBtn = `<button type="button" class="btn btn-danger removeCode">Remove</button>`
+        }
+
         formHTML =`
-        <div class="col-6 nopad fForm" data-for="${dataId}" data-content="fa-link">
+        <div class="col-6 nopad fForm" data-for="${dataId}" data-content="${dataContent}">
             <div class="form">
                 <div class="row">
                     <div class="col-6 text-start mb-2">
@@ -283,16 +317,7 @@ $(document).on('click','.addData',function(){
                         <input type="text" class="form-control link" placeholder="{{Base URL}} + Link, type '{{BaseURL}}' if only BaseURL" value="${(data) ? data.link : ''}">
         
                     </div>
-                    <div class="input-group mb-2">
-                        <span class="input-group-text">Img Src*</span>
-                        <input type="text" class="form-control imgSrc" placeholder="Image Source" value="${(data) ?  data.imgSrc : ''}">
-        
-                    </div>
-                    <div class="input-group mb-2">
-                        <span class="input-group-text">Img Alt</span>
-                        <input type="text" class="form-control imgAlt" placeholder="Image Alt" value="${(data) ? data.imgAlt : ''}">
-        
-                    </div>
+                    ${imgForm}
                     <div class="input-group mb-2">
                         <span class="input-group-text gold">Deeplink</span>
                         <input type="text" class="form-control goldDl" placeholder="Gold Deeplink" value="${(data) ? data.goldTier : ''}"${disable}>
@@ -323,6 +348,7 @@ $(document).on('click','.addData',function(){
                         </label>
                     </div>
                     <div class="text-end">
+                        ${removeBtn}
                         <button type="button" class="btn btn-primary save">Save</button>
                     </div>
                 </div>
@@ -442,9 +468,12 @@ $(document).on("click",".btnClose",function(){
     origElement.remove();
 
     //changing status to inactive
+
     let originalContent = ''
     if(content == "fa-code"){
         originalContent = $('.customBlock[data-id="' + origElement.attr("data-for") + '"').find(".addData");
+    }else if(content == "fa-globe"){
+        originalContent = $('.linkOnlyContainer[data-id="' + origElement.attr("data-for") + '"').find(".addData");
     }else{
         originalContent = $('.openSelection[data-id="' + origElement.attr("data-for") + '"').find(".addData");
     }
@@ -455,11 +484,19 @@ $(document).on("click",".btnClose",function(){
 //removing custom code
 $(document).on("click",".removeCode",function(){
     let origElement = $(this).closest(".fForm");
-    //removing the actual block
-    $('.customBlock[data-id="' + origElement.attr("data-for") + '"').remove();
 
-    //removing to global variable
-    delete globalHtml[origElement.attr("data-for")];
+    //check if its fa-globe or fa-code
+    if(origElement.attr("data-content") == "fa-code"){
+
+        //removing the actual block
+        $('.customBlock[data-id="' + origElement.attr("data-for") + '"').remove();
+
+        //removing to global variable
+        delete globalHtml[origElement.attr("data-for")];
+
+    }else{
+        $('.linkOnlyContainer[data-id="' + origElement.attr("data-for") + '"').remove();
+    }
 
     //removing self in the container
     origElement.remove();
@@ -493,6 +530,23 @@ $(document).on("click",'.save',function(){
             save = 1;
         }
     }
+
+    if(contentType == "fa-globe"){
+        //check if any of slice,link,src or (GD or SD or BD or MD) have data
+        if($.trim(formParent.find(".slice").val()) || $.trim(formParent.find(".link").val()) || $.trim(formParent.find(".goldDl").val()) ||  $.trim(formParent.find(".silverDl").val()) || $.trim(formParent.find(".bronzeDl").val()) || $.trim(formParent.find(".memberDl").val())){
+            data.slice = $.trim(formParent.find(".slice").val());
+            data.link = $.trim(formParent.find(".link").val());
+            data.goldTier = $.trim(formParent.find(".goldDl").val());
+            data.silverTier = $.trim(formParent.find(".silverDl").val());
+            data.bronzeTier = $.trim(formParent.find(".bronzeDl").val());
+            data.memberTier = $.trim(formParent.find(".memberDl").val());
+            data.actualLink = formParent.find(".actualLink").is(':checked');
+            data.noDl = formParent.find(".noDl").is(':checked');
+            data.contentType = contentType;
+            data.id = parentID;
+            save = 1;
+        }
+    }    
 
     if(contentType == "fa-image"){
         //if img src is not empty, then save
@@ -532,6 +586,9 @@ $(document).on("click",'.save',function(){
     let originalContent = ''
     if(contentType == "fa-code"){
         originalContent = $('.customBlock[data-id="' + parentID + '"');
+    }else if(contentType == "fa-globe"){
+        originalContent = $('.linkOnlyContainer[data-id="' + parentID + '"');
+    
     }else{
         originalContent = $('.openSelection[data-id="' + parentID + '"');
     }
@@ -651,6 +708,28 @@ function buildBlocks(){
 
             }
 
+            if($(this).hasClass("linkOnlyContainer")){
+                let content = {};
+                let dataId = $(this).attr("data-id");
+                let data = $(this).find("i.addData").attr("data");
+                //if theres data, save
+                if(data){
+                    content.columnType = "linkOnly";
+                    content.data = data;
+                    content.id = dataId;
+                    perRow.push(content);
+                }
+
+                //check if needs to save
+                if(perRow.length > 0){
+                    perTable.tableType = "linkOnly";
+                    perTable.column = column;
+                    perTable.data = perRow;
+                    innerBlock.push(perTable)
+                }
+
+            }
+
         });
 
         //check if needed savings in the globalblock
@@ -682,12 +761,16 @@ function emailTemplate(){
 
         }
 
+
+        if($.trim(content)){
+
         block += `
 <!-- Block ${index + 1} -->
 ${content}
 <!-- end of Block ${index + 1} -->        
         `
-        
+        }
+
     }
 
     //adding spinner tp the preview content
@@ -696,9 +779,7 @@ ${content}
     $("#btnContainer").css("display","block");
 
     //appending to the div after 5 secs
-    setTimeout(function(){
-        $("#previewContainer").empty().append(block);
-    }, 5000);
+    $("#previewContainer").empty().append(block);
     
 }
 
@@ -711,21 +792,25 @@ function generateTable(data){
 
 
     for (let index = 0; index < dataTr.length; index++) {
-        contentHtml += generateRows(dataTr[index], column);
+        if(tableType != "linkOnly"){
+            contentHtml += generateRows(dataTr[index], column);
+        }
     }
 
-    //console.log(tableType);
-    // console.log(contentHtml);
 
-    if (tableType != "customTable"){
+    if (tableType != "customTable" && tableType != "linkOnly"){
         htmlTable = 
 `<table align="center" border="0" cellpadding="0" cellspacing="0" class="full-width" width="600">
 \t<tbody>${contentHtml}\t</tbody>
 </table>`
     }else{
-        htmlTable = `${contentHtml}\n`
+        if(tableType == "customTable"){
+            htmlTable = `${contentHtml}\n`
+        }else{
+            htmlTable = ""
+        }
     }
-
+    
     return htmlTable;
 
 
@@ -736,6 +821,7 @@ function generateRows(trDatas, column){
     let trColspan = (column == 2) ? ' colspan="2" ' : '';
     let trData = trDatas.data;
     let html = '';
+
     //templating
     //check if fullcolumn, twocolumn or codeBlock
     if (columnType == "fullcolumn"){
@@ -844,6 +930,7 @@ html = `
     if (columnType == "codeBlock" || columnType == "fa-font"){
 
         html = trData
+
     }
 
     return html;
@@ -876,24 +963,28 @@ function setLiquid(){
             for (let y = 0; y < tableTypes.data.length; y++) {
                 const columnType = tableTypes.data[y];
 
-                //check if one or two column
-                if (columnType.columnType == "twocolumn"){
-                    
-                    for (let a = 0; a < columnType.data.length; a++) {
-                         let data = JSON.parse(columnType.data[a])
+                //make sure it is not codeblock
+                if(columnType.columnType != "codeBlock"){
+                    //check if one or two column
+                    if (columnType.columnType == "twocolumn"){
+                        
+                        for (let a = 0; a < columnType.data.length; a++) {
+                            let data = JSON.parse(columnType.data[a])
 
-                        if(data.contentType == "fa-link"){
+                            if(data.contentType == "fa-link"){
+                                setVariables(data);
+                            }  
+                        }
+
+                    }else{
+                        //one column and link Only
+                        let data = JSON.parse(columnType.data);
+
+                        //only save if contentType is fa-link
+                        if(data.contentType == "fa-link" || data.contentType == "fa-globe"){
                             setVariables(data);
-                        }  
+                        }                    
                     }
-
-                }else{
-                    //one column
-                    let data = JSON.parse(columnType.data)
-                    //only save if contentType is fa-link
-                    if(data.contentType == "fa-link"){
-                        setVariables(data);
-                    }                    
                 }
                 
             }
@@ -907,10 +998,16 @@ function setLiquid(){
 
 function setVariables(d){
     let data = d;   
+    let imgSrc = ''
+
+    if(data.contentType == "fa-globe"){
+        imgSrc = "dummySrc"
+    }else{
+        imgSrc = data.imgSrc
+    }
 
     //check if slice, link, imgSrc and any of the deeplinks have values
-
-    if(data.slice && data.link && data.imgSrc){
+    if(data.slice && data.link && imgSrc){
         if(!linksCheck(data.slice)){
             //if theres no duplciate,,save create variable
 
@@ -937,10 +1034,10 @@ function setVariables(d){
                 
                 if (data.goldTier && data.silverTier && data.bronzeTier && data.memberTier){
                     //AU
-                    tierLinks.goldTier += `\t\t{% assign Link${data.slice} = ${data.goldTier} %}\n`;
-                    tierLinks.silverTier += `\t\t{% assign Link${data.slice} = ${data.silverTier} %}\n`;
-                    tierLinks.bronzeTier += `\t\t{% assign Link${data.slice} = ${data.bronzeTier} %}\n`;
-                    tierLinks.memberTier += `\t\t{% assign Link${data.slice} = ${data.memberTier} %}\n`;
+                    tierLinks.goldTier += `\t\t{% assign Link${data.slice} = '${data.goldTier}' %}\n`;
+                    tierLinks.silverTier += `\t\t{% assign Link${data.slice} = '${data.silverTier}' %}\n`;
+                    tierLinks.bronzeTier += `\t\t{% assign Link${data.slice} = '${data.bronzeTier}' %}\n`;
+                    tierLinks.memberTier += `\t\t{% assign Link${data.slice} = '${data.memberTier}' %}\n`;
 
                 }else{
                     //if any of the tier have value
@@ -952,7 +1049,7 @@ function setVariables(d){
                             const element = tierArray[index];
                             //if have value, save
                             if(tierArray[index]){
-                                getLink = `\t{% assign Link${data.slice} = ${tierArray[index]} %}\n`;
+                                getLink = `\t{% assign Link${data.slice} = '${tierArray[index]}' %}\n`;
                             }
                             
                         }
@@ -965,7 +1062,7 @@ function setVariables(d){
                         errorMessages.push(message);
                     }
                 }
-                console.log(baseURL)
+
                 if(baseURL == "{{baseurl}}"){
                     nzLinks += `\t{% assign Link${data.slice} = BaseURL %}\n`;
                 }else{
