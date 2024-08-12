@@ -372,3 +372,10 @@ padding:10px 5px 0px 5px;
 .offcanvas.offcanvas-top{
     height: auto !important;
 }
+
+/* This style will be applied when the class 'make-sticky' is added */
+.sticky {
+    position: -webkit-sticky;
+    position: sticky;
+    top: 0;
+}

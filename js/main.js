@@ -1094,7 +1094,7 @@ function missingData(){
             const msg = errorMessages[index];
             let htmlMsg = `<div class="alert alert-danger" role="alert">${msg}</div>`;
             //prepending the error messagees
-            $("#errorPrep").prepend(htmlMsg);
+            $("#errorPrep .sticky").prepend(htmlMsg);
         }
 
     }
@@ -1163,7 +1163,7 @@ function linksCheck(slice){
 
     }
 
-    $("#errorPrep").prepend(htmlWarning);
+    $("#errorPrep .sticky").prepend(htmlWarning);
     return duplicates //return to check if theres duplicate
 }
 
