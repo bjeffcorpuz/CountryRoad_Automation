@@ -616,6 +616,7 @@ $(document).on("click","#previewBuild",function(){
     setLiquid();
     missingData();
     printLiquidscript();
+    loading();
 });
 
 
@@ -832,7 +833,7 @@ function generateRows(trDatas, column){
         }else{
 
 
-        let linkStart = (trData.contentType == "fa-link") ? `<a href="{{ Link${trData.slice} }}?" {{clicktracking}}style="text-decoration: none;" target="_blank">` : '';
+        let linkStart = (trData.contentType == "fa-link") ? `<span class="sliceSpan">${trData.slice}</span><a href="{{ Link${trData.slice} }}?" {{clicktracking}}style="text-decoration: none;" target="_blank">` : '';
         let linkEnd = (trData.contentType == "fa-link") ?  '</a>' : '';
         
         
@@ -857,10 +858,10 @@ html = `
         //converting array(string) to obj
         trData = [JSON.parse(trData[0]),JSON.parse(trData[1])];
 
-        let linkStartL = (trData[0].contentType == "fa-link") ? `<a href="{{ Link${trData[0].slice} }}?" {{clicktracking}}style="text-decoration: none;" target="_blank">` : '';
+        let linkStartL = (trData[0].contentType == "fa-link") ? `<span class="sliceSpan">${trData[0].slice}</span><a href="{{ Link${trData[0].slice} }}?" {{clicktracking}}style="text-decoration: none;" target="_blank">` : '';
         let linkEndL = (trData[0].contentType == "fa-link") ?  '</a>' : '';
 
-        let linkStartR = (trData[1].contentType == "fa-link") ? `<a href="{{ Link${trData[1].slice} }}?" {{clicktracking}}style="text-decoration: none;" target="_blank">` : '';
+        let linkStartR = (trData[1].contentType == "fa-link") ? `<span class="sliceSpan">${trData[1].slice}</span><a href="{{ Link${trData[1].slice} }}?" {{clicktracking}}style="text-decoration: none;" target="_blank">` : '';
         let linkEndR = (trData[1].contentType == "fa-link") ?  '</a>' : '';
 
         let leftContent = '';
@@ -1167,12 +1168,29 @@ function linksCheck(slice){
     return duplicates //return to check if theres duplicate
 }
 
+function loading(){
+    $(".container-loading").css("display","flex").fadeIn();
+
+    let secs = Math.floor(Math.random() * (3000 - 1000 + 1)) + 1000;
+
+    // Set a timeout to remove the loading screen after 2 seconds
+    setTimeout(function () {
+        $(".container-loading").fadeOut();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, secs);   
+}
+
 //copy html
 $(document).on('click',"#copybuild",function(){
+
     // Get the HTML content of the source element
     var htmlContent = $('#previewContainer').html();
+
+    // Remove elements with the class "sliceSpan"
+    var cleanedContent = $('<div>').html(htmlContent).find('.sliceSpan').remove().end().html()
+
     // Create a temporary textarea element to hold the HTML content
-    var tempTextarea = $('<textarea>').text($.trim(htmlContent)).css({
+    var tempTextarea = $('<textarea>').text($.trim(cleanedContent)).css({
         position: 'fixed',
         top: 0,
         left: 0,

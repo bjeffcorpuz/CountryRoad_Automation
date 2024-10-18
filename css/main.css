@@ -379,3 +379,100 @@ padding:10px 5px 0px 5px;
     position: sticky;
     top: 0;
 }
+
+/* Loading css */
+.container-loading {
+    width: 100vw; /* Set the width of the container */
+    height: 100vh; /* Set the height of the container */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: black; /* Set container background to black */
+    position: fixed;
+    top:0;
+    left:0;
+    z-index: 9999; /* Ensure it stays on top of other content */
+    display: none;
+}
+
+.loading-container {
+    display: flex; /* Align items in a row */
+    align-items: center; /* Center items vertically */
+}
+
+.loading-text {
+    font-size: 2em;
+    font-family: "Ubuntu", Helvetica, sans-serif;
+    display: flex;
+    gap: 3px;
+    color: #00f0ff; /* Same color as the spinner */
+}
+
+.loading-text span {
+    display: inline-block;
+    animation: wave 1.5s infinite; /* Wave animation */
+}
+
+/* Wave animation */
+@keyframes wave {
+    0% {
+        transform: translateY(0);
+    }
+    25% {
+        transform: translateY(-10px); /* Move up */
+    }
+    50% {
+        transform: translateY(0); /* Move back to original */
+    }
+    75% {
+        transform: translateY(10px); /* Move down */
+    }
+    100% {
+        transform: translateY(0); /* Move back to original */
+    }
+}
+
+/* Individual animation delays for each letter */
+.loading-text span:nth-child(1) { animation-delay: 0s; }
+.loading-text span:nth-child(2) { animation-delay: 0.1s; }
+.loading-text span:nth-child(3) { animation-delay: 0.2s; }
+.loading-text span:nth-child(4) { animation-delay: 0.3s; }
+.loading-text span:nth-child(5) { animation-delay: 0.4s; }
+.loading-text span:nth-child(6) { animation-delay: 0.5s; }
+.loading-text span:nth-child(7) { animation-delay: 0.6s; }
+.loading-text span:nth-child(8) { animation-delay: 0.7s; }
+.loading-text span:nth-child(9) { animation-delay: 0.8s; }
+.loading-text span:nth-child(10) { animation-delay: 0.9s; }
+
+.spinner {
+    width: 50px;
+    height: 50px;
+    border: 5px solid rgba(255, 255, 255, 0.3);
+    border-top: 5px solid #00f0ff; /* Match the spinner color to the letters */
+    border-radius: 50%;
+    animation: spin 1.5s linear infinite; /* Match spinner speed to letter animation */
+    margin-left: 20px; /* Space between the text and spinner */
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* sliceSpan */
+#previewContainer td{
+    position: relative;
+}
+.sliceSpan {
+    position: absolute;
+    opacity: 0.8;
+    top:5px;
+    left:5px;
+    padding:10px;
+    background-color: #ABFF4F !important;
+    color:#000 !important;
+}
