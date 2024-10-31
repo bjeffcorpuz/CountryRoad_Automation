@@ -257,6 +257,12 @@ $(document).on('click','.addData',function(){
                         <input type="text" class="form-control imgAlt" placeholder="Image Alt" value="${(data) ? data.imgAlt : ''}">
         
                     </div>
+                    <div class="text-start mb-2">
+                        <input class="form-check-input bg" type="checkbox" value="" id="${dataId}I" ${(data) ? (data.bg === true ? "checked" : "") : ''}>
+                        <label class="form-check-label" for="${dataId}I">
+                            Add Background Image
+                        </label>
+                    </div>
                     <div class="text-end">
                         <button type="button" class="btn btn-primary save">Save</button>
                     </div>
@@ -336,7 +342,6 @@ $(document).on('click','.addData',function(){
                     </div>
                     <div class="text-start mb-2">
                         <input class="form-check-input actualLink" type="checkbox" value="" id="${dataId}" ${((data) ? (data.actualLink === true ? "checked" : "") : '')}>
-        
                         <label class="form-check-label" for="${dataId}">
                             Use actual <strong>Link</strong>
                         </label>
@@ -345,6 +350,12 @@ $(document).on('click','.addData',function(){
                         <input class="form-check-input noDl" type="checkbox" value="" id="${dataId}2" ${(data) ? (data.noDl === true ? "checked" : "") : ''}>
                         <label class="form-check-label" for="${dataId}2">
                             No Deep Links
+                        </label>
+                    </div>
+                    <div class="text-start mb-2">
+                        <input class="form-check-input bg" type="checkbox" value="" id="${dataId}3" ${(data) ? (data.bg === true ? "checked" : "") : ''}>
+                        <label class="form-check-label" for="${dataId}3">
+                            Add Background Image
                         </label>
                     </div>
                     <div class="text-end">
@@ -525,6 +536,7 @@ $(document).on("click",'.save',function(){
             data.memberTier = $.trim(formParent.find(".memberDl").val());
             data.actualLink = formParent.find(".actualLink").is(':checked');
             data.noDl = formParent.find(".noDl").is(':checked');
+            data.bg =formParent.find(".bg").is(':checked');
             data.contentType = contentType;
             data.id = parentID;
             save = 1;
@@ -553,6 +565,7 @@ $(document).on("click",'.save',function(){
         if($.trim(formParent.find(".imgSrc").val())){
             data.imgSrc = $.trim(formParent.find(".imgSrc").val());
             data.imgAlt = $.trim(formParent.find(".imgAlt").val());
+            data.bg =formParent.find(".bg").is(':checked');
             data.contentType = contentType;
             data.id = parentID;
             save = 1;
@@ -598,7 +611,6 @@ $(document).on("click",'.save',function(){
     }else{
         originalContent.find(".addData").attr("data-status","inactive");
     }
-    
     
 
     //removing self to the continer
@@ -835,11 +847,12 @@ function generateRows(trDatas, column){
 
         let linkStart = (trData.contentType == "fa-link") ? `<span class="sliceSpan">${trData.slice}</span><a href="{{ Link${trData.slice} }}?" {{clicktracking}}style="text-decoration: none;" target="_blank">` : '';
         let linkEnd = (trData.contentType == "fa-link") ?  '</a>' : '';
+        let td = (trData.bg) ? `<td align="center" valign="top" background="${trData.imgSrc}" style="background: url('${trData.imgSrc}') top left / cover no-repeat; background-size: cover; height: inherit; width: 600px;"${trColspan}>` : `<td align="center" valign="top"${trColspan}>`;
         
         
 html = `
     <tr>
-        <td align="center" valign="top" background="${trData.imgSrc}" style="background: url('${trData.imgSrc}') top left / cover no-repeat; background-size: cover; height: inherit; width: 600px;"${trColspan}>
+        ${td}
             ${linkStart}
                 <!--[if !mso 9]><!-->
                 <div class="mobile-show" width="100%" style="mso-hide: all; display:none; overflow: hidden; max-height: 0px; line-height:0;">
@@ -863,6 +876,9 @@ html = `
 
         let linkStartR = (trData[1].contentType == "fa-link") ? `<span class="sliceSpan">${trData[1].slice}</span><a href="{{ Link${trData[1].slice} }}?" {{clicktracking}}style="text-decoration: none;" target="_blank">` : '';
         let linkEndR = (trData[1].contentType == "fa-link") ?  '</a>' : '';
+
+        let thL = (trData[0].bg) ? `<th class="half-width" width="300" valign="top" background="${trData[0].imgSrc}" style="background: url('${trData[0].imgSrc}') top left / cover no-repeat; background-size: cover; height: inherit; width: 300px;">` : `<th class="half-width" width="300" valign="top">`
+        let thR = (trData[1].bg) ? `<th class="half-width" width="300" valign="top" background="${trData[1].imgSrc}" style="background: url('${trData[1].imgSrc}') top left / cover no-repeat; background-size: cover; height: inherit; width: 300px;">` : `<th class="half-width" width="300" valign="top">`;
 
         let leftContent = '';
         let rightContent = '';
@@ -908,7 +924,7 @@ html = `
 
         html = `
     <tr>
-        <th class="half-width" width="300" valign="top" background="${trData[0].imgSrc}" style="background: url('${trData[0].imgSrc}') top left / cover no-repeat; background-size: cover; height: inherit; width: 300px;">
+        ${thL}
             <table class="full-width" width="100%" border="0" cellpadding="0" cellspacing="0">
                 <tbody>
                     ${leftContent}
@@ -916,7 +932,7 @@ html = `
             </table>
         </th>
 
-        <th class="half-width" width="300" valign="top" background="${trData[1].imgSrc}" style="background: url('${trData[1].imgSrc}') top left / cover no-repeat; background-size: cover; height: inherit; width: 300px;">
+        ${thR}
             <table class="full-width" width="100%" border="0" cellpadding="0" cellspacing="0">
                 <tbody>
                     ${rightContent}
