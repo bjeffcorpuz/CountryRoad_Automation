@@ -320,7 +320,7 @@ $(document).on('click','.addData',function(){
                     </div>
                     <div class="input-group mb-2">
                         <span class="input-group-text">Link*</span>
-                        <input type="text" class="form-control link" placeholder="{{Base URL}} + Link, type '{{BaseURL}}' if only BaseURL" value="${(data) ? data.link : ''}">
+                        <input type="text" class="form-control link" placeholder="{{Base URL}} + Link, type '{{BaseURL}}' if only BaseURL" value="${(data) ? data.link : '{{BaseURL}}'}">
         
                     </div>
                     ${imgForm}
@@ -793,6 +793,10 @@ ${content}
 
     //appending to the div after 5 secs
     $("#previewContainer").empty().append(block);
+
+    //removing the span before adding the code to modal
+    let removeSlice = block.replace(/<span\s+class=["']sliceSpan["'][^>]*>.*?<\/span>/gi, '');
+    $('#modalTextarea').val(removeSlice);    
     
 }
 
@@ -845,7 +849,7 @@ function generateRows(trDatas, column){
         }else{
 
 
-        let linkStart = (trData.contentType == "fa-link") ? `<span class="sliceSpan">${trData.slice}</span><a href="{{ Link${trData.slice} }}?" {{clicktracking}}style="text-decoration: none;" target="_blank">` : '';
+        let linkStart = (trData.contentType == "fa-link") ? `<span class="sliceSpan">${trData.slice}</span><a href="{{ Link${trData.slice} }}?" style="text-decoration: none;" target="_blank" {{clicktracking}}>` : '';
         let linkEnd = (trData.contentType == "fa-link") ?  '</a>' : '';
         let td = (trData.bg) ? `<td align="center" valign="top" background="${trData.imgSrc}" style="background: url('${trData.imgSrc}') top left / cover no-repeat; background-size: cover; height: inherit; width: 600px;"${trColspan}>` : `<td align="center" valign="top"${trColspan}>`;
         
@@ -871,10 +875,10 @@ html = `
         //converting array(string) to obj
         trData = [JSON.parse(trData[0]),JSON.parse(trData[1])];
 
-        let linkStartL = (trData[0].contentType == "fa-link") ? `<span class="sliceSpan">${trData[0].slice}</span><a href="{{ Link${trData[0].slice} }}?" {{clicktracking}}style="text-decoration: none;" target="_blank">` : '';
+        let linkStartL = (trData[0].contentType == "fa-link") ? `<span class="sliceSpan">${trData[0].slice}</span><a href="{{ Link${trData[0].slice} }}?" style="text-decoration: none;" target="_blank" {{clicktracking}}>` : '';
         let linkEndL = (trData[0].contentType == "fa-link") ?  '</a>' : '';
 
-        let linkStartR = (trData[1].contentType == "fa-link") ? `<span class="sliceSpan">${trData[1].slice}</span><a href="{{ Link${trData[1].slice} }}?" {{clicktracking}}style="text-decoration: none;" target="_blank">` : '';
+        let linkStartR = (trData[1].contentType == "fa-link") ? `<span class="sliceSpan">${trData[1].slice}</span><a href="{{ Link${trData[1].slice} }}?" style="text-decoration: none;" target="_blank" {{clicktracking}}>` : '';
         let linkEndR = (trData[1].contentType == "fa-link") ?  '</a>' : '';
 
         let thL = (trData[0].bg) ? `<th class="half-width" width="300" valign="top" background="${trData[0].imgSrc}" style="background: url('${trData[0].imgSrc}') top left / cover no-repeat; background-size: cover; height: inherit; width: 300px;">` : `<th class="half-width" width="300" valign="top">`
@@ -1035,7 +1039,7 @@ function setVariables(d){
             if (data.actualLink || data.noDl){
 
                 if(data.actualLink){
-                    outsideLinks += `\t{% assign Link${data.slice} = ${data.link} %}\n`  
+                    outsideLinks += `\t{% assign Link${data.slice} = '${data.link}' %}\n`  
                 }else{
                     if(baseURL == "{{baseurl}}"){
                         outsideLinks += `\t{% assign Link${data.slice} = BaseURL %}\n`
@@ -1197,37 +1201,16 @@ function loading(){
 }
 
 //copy html
-$(document).on('click',"#copybuild",function(){
+$(document).on('click', "#copybuild", function () {
 
-    // Get the HTML content of the source element
-    var htmlContent = $('#previewContainer').html();
-
-    // Remove elements with the class "sliceSpan"
-    var cleanedContent = $('<div>').html(htmlContent).find('.sliceSpan').remove().end().html()
-
-    // Create a temporary textarea element to hold the HTML content
-    var tempTextarea = $('<textarea>').text($.trim(cleanedContent)).css({
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        opacity: 0
-    });
-
-    // Append the textarea to the body
-    $('body').append(tempTextarea);
-
-    // Select the text in the textarea
-    tempTextarea.select();
-
-    // Copy the selected text to the clipboard
-    document.execCommand('copy');
-
-    // Remove the temporary textarea
-    tempTextarea.remove();
-
-    // Optionally, provide feedback to the user
-    alert('Email Html has been copied to the clipboard!');
+    $('#htmlModal').fadeIn();
 });
+
+// Close button logic
+$(document).on('click', "#closeModal", function () {
+    $('#htmlModal').fadeOut();
+});
+
 
 //copy data string
 $(document).on('click', "#copyDataString, #copyLiquidString", function() {
